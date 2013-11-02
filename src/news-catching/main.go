@@ -16,6 +16,12 @@ import (
 var RedisPool *redis.Pool
 var DbConnect *sql.DB
 
+type ApiResponseJson struct {
+    Data interface{} `json:"data"`
+    Message string `json:"message"`
+    Status int32 `json:"status"`
+}
+
 func main() {
 
     var (
@@ -66,7 +72,9 @@ func main() {
     runtime.GOMAXPROCS(cpu_num)
 
     http.HandleFunc("/api/v1/ping", PingAction)
+    http.HandleFunc("/api/v1/doAuth", AuthAction)
     http.HandleFunc("/api/v1/news/hotests", NewsHotestsAction)
+    http.HandleFunc("/api/v1/news/read/", NewsReadAction)
 
     http.ListenAndServe((*config).Server, nil)
 
