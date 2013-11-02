@@ -1,7 +1,9 @@
 package main
 
 import (
+    "fmt"
     "time"
+    "strings"
     "github.com/c9s/gatsby"
 )
 
@@ -26,4 +28,64 @@ type News struct {
     IsSupport       int16       `field:"is_support" json:"isSupport,string"`
     IsHeadline      int16       `field:"is_headline" json:"isHeadline,string"`
     gatsby.BaseRecord
+}
+
+func GetNewsMeta(newsId int64) (*map[string]interface{}, error) {
+    comment := Comments{}
+    rows, err := gatsby.QuerySelectWith(DbConnect, &comment, "WHERE news_id = ? AND deleted_at IS NULL ORDER BY type", newsId)
+    if err != nil {
+        return nil, err
+    } else {
+        if data, err := gatsby.CreateStructSliceFromRows(&comment, rows); err != nil {
+            return nil, err
+        } else {
+            output := make(map[string]interface{})
+            commentsList := data.([]Comments)
+            ti, ri, ni, length := 0, 0, 0, len(commentsList)
+            reports := make([]Comments, length)
+            talks := make([]Comments, length)
+            newsIds := make([]string, length)
+            newsIdFlags := make(map[int64]bool)
+            for _, comment := range commentsList {
+                if comment.NewsID != 0 {
+                    if _, ok := newsIdFlags[comment.NewsID]; ! ok {
+                        newsIds[ni] = fmt.Sprintf("%d", comment.NewsID)
+                        ni ++
+                    }
+                    reports[ri] = comment
+                    ri ++
+                } else {
+                    talks[ti] = comment
+                    ti ++
+                }
+            }
+            if ni > 0 {
+                cnews := make(map[int64]*News, ni)
+                nrows, err := gatsby.QuerySelectWith(DbConnect, &News{}, "WHERE id IN (" + strings.Join(newsIds, ",") + ") AND delete_time IS NULL ")
+                if err == nil {
+                    news := News{}
+                    data, err := gatsby.CreateStructSliceFromRows(&news, nrows)
+                    if err != nil {
+                        return nil, err
+                    } else {
+                        newsList := data.([]News)
+                        for _, news := range newsList {
+                            news.Body = ""
+                            news.PicPath = UrlDomain + news.PicPath[2:]
+                            news.ThumbPath = UrlDomain + news.ThumbPath[2:]
+                            cnews[news.Id] = &news
+                        }
+                        for k, v := range reports {
+                            reports[k].News = cnews[v.NewsID]
+                        }
+                    }
+                } else {
+                    return nil, err
+                }
+            }
+            output["reports"] = reports
+            output["talks"] = talks
+            return &output, nil
+        }
+    }
 }

@@ -40,7 +40,6 @@ func NewsReadAction(w http.ResponseWriter, r *http.Request) {
     header.Set("Expires", "Thu, 01 Dec 1994 16:00:00 GMT")
 
     news := gatsby.NewRecord(&News{}).(*News)
-
     res := news.Load(newsId)
     if res.Error != nil {
         output.Error(501, res.Error.Error())
@@ -51,25 +50,27 @@ func NewsReadAction(w http.ResponseWriter, r *http.Request) {
     }
 
     if output.NoError() {
-        data := make(map[string]interface{})
-        data["news"] = News{
-            Id: news.Id,
-            Title: news.Title,
-            Body: news.Body,
-            PublishTime: news.PublishTime,
-            Url: news.Url,
-            Guid: news.Guid,
-            OgImage: news.OgImage,
-            PicPath: UrlDomain + news.PicPath[2:],
-            ThumbPath: UrlDomain + news.ThumbPath[2:],
-            Referral: news.Referral,
-            CreateTime: news.CreateTime,
-            IsSupport: news.IsSupport,
-            IsHeadline: news.IsHeadline,
+        data, err := GetNewsMeta(news.Id)
+        if err == nil {
+            (*data)["news"] = News{
+                Id: news.Id,
+                Title: news.Title,
+                Body: news.Body,
+                PublishTime: news.PublishTime,
+                Url: news.Url,
+                Guid: news.Guid,
+                OgImage: news.OgImage,
+                PicPath: UrlDomain + news.PicPath[2:],
+                ThumbPath: UrlDomain + news.ThumbPath[2:],
+                Referral: news.Referral,
+                CreateTime: news.CreateTime,
+                IsSupport: news.IsSupport,
+                IsHeadline: news.IsHeadline,
+            }
+            output.Data = *data
+        } else {
+            output.Error(501, err.Error())
         }
-
-        output.Data = data
-        // fmt.Printf("%#v\n", news)
     }
     writeResponseJson(w, output, r.FormValue("callback"))
     w.(http.Flusher).Flush()
@@ -123,7 +124,7 @@ func NewsHotestsAction(w http.ResponseWriter, r *http.Request) {
         }
         params[6] = time.Now().AddDate(0,0,-2).Unix()
         fmt.Println(params)
-        rows, err := gatsby.QuerySelectWith(DbConnect, &News{}, "WHERE id IN (?,?,?,?,?,?) AND create_time > ? AND thumb_path <> '' ", params...)
+        rows, err := gatsby.QuerySelectWith(DbConnect, &News{}, "WHERE id IN (?,?,?,?,?,?) AND create_time > ? AND thumb_path <> '' AND delete_time IS NULL ", params...)
         if err == nil {
             news := News{}
             data, err := gatsby.CreateStructSliceFromRows(&news, rows)
