@@ -15,6 +15,7 @@ import (
 
 var RedisPool *redis.Pool
 var DbConnect *sql.DB
+var UrlDomain string
 
 type ApiResponseJson struct {
     Data interface{} `json:"data"`
@@ -40,6 +41,7 @@ func main() {
         return
     }
     fmt.Printf("%#v\n", config)
+    UrlDomain = (*config).UrlDomain
 
     db, err := sql.Open("mysql", (*config).Mysql)
     if err != nil {

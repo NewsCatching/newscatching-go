@@ -21,5 +21,6 @@ type Config struct {
     Server string `json:"server"`
     Redis string `json:"redis"`
     Mysql string `json:"mysql"`
+    UrlDomain string `json:"urlDomain"`
     Path map[string]string `json:"path"`
 }

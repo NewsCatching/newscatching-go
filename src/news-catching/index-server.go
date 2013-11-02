@@ -15,9 +15,17 @@ func NewsReadAction(w http.ResponseWriter, r *http.Request) {
     var newsId int64
     var err error
     output := ApiResponseJson{}
+    freg := r.URL.Path[18:]
 
-    if newsId, err = strconv.ParseInt(r.URL.Path[18:], 10, 64); err != nil {
-        output.Error(501, err.Error())
+    if freg == "" {
+        output.Error(404, "No news id.")
+        writeResponseJson(w, output, r.FormValue("callback"))
+        w.(http.Flusher).Flush()
+        return
+    }
+
+    if newsId, err = strconv.ParseInt(freg, 10, 64); err != nil {
+        output.Error(502, err.Error())
         writeResponseJson(w, output, r.FormValue("callback"))
         w.(http.Flusher).Flush()
         return
@@ -52,8 +60,8 @@ func NewsReadAction(w http.ResponseWriter, r *http.Request) {
             Url: news.Url,
             Guid: news.Guid,
             OgImage: news.OgImage,
-            PicPath: news.PicPath,
-            ThumbPath: news.ThumbPath,
+            PicPath: UrlDomain + news.PicPath[2:],
+            ThumbPath: UrlDomain + news.ThumbPath[2:],
             Referral: news.Referral,
             CreateTime: news.CreateTime,
             IsSupport: news.IsSupport,
