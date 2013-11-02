@@ -19,13 +19,6 @@ func GetConfig(path string) (*JfConfig, error) {
 
 type JfConfig struct {
     Redis string `json:"redis"`
+    Mysql string `json:"mysql"`
     Path map[string]string `json:"path"`
-    Fonts []FontConfig `json:"fonts"`
-}
-
-type FontConfig struct {
-    Name string `json:"name"`
-    Path string `json:"path"`
-    Free bool `json:"free"`
-    Vip bool `json:"vip"`
 }
