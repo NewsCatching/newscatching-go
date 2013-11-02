@@ -6,12 +6,22 @@ import (
     "math/rand"
     "time"
     "github.com/c9s/gatsby"
+    "strconv"
     // "database/sql"
 )
 
 func NewsReadAction(w http.ResponseWriter, r *http.Request) {
 
-    // newsId := r.URL.Path[18:]
+    var newsId int64
+    var err error
+    output := ApiResponseJson{}
+
+    if newsId, err = strconv.ParseInt(r.URL.Path[18:], 10, 64); err != nil {
+        output.Error(501, err.Error())
+        writeResponseJson(w, output, r.FormValue("callback"))
+        w.(http.Flusher).Flush()
+        return
+    }
 
     header := w.Header()
     // header.Set("Content-Type", "text/plain; charset=utf-8")
@@ -21,9 +31,39 @@ func NewsReadAction(w http.ResponseWriter, r *http.Request) {
     header.Set("Pragma", "no-cache")
     header.Set("Expires", "Thu, 01 Dec 1994 16:00:00 GMT")
 
-    w.WriteHeader(200)
+    news := gatsby.NewRecord(&News{}).(*News)
 
+    res := news.Load(newsId)
+    if res.Error != nil {
+        output.Error(501, res.Error.Error())
+    } else {
+        if res.IsEmpty {
+            output.Error(404, "empty result")
+        }
+    }
 
+    if output.NoError() {
+        data := make(map[string]interface{})
+        data["news"] = News{
+            Id: news.Id,
+            Title: news.Title,
+            Body: news.Body,
+            PublishTime: news.PublishTime,
+            Url: news.Url,
+            Guid: news.Guid,
+            OgImage: news.OgImage,
+            PicPath: news.PicPath,
+            ThumbPath: news.ThumbPath,
+            Referral: news.Referral,
+            CreateTime: news.CreateTime,
+            IsSupport: news.IsSupport,
+            IsHeadline: news.IsHeadline,
+        }
+
+        output.Data = data
+        // fmt.Printf("%#v\n", news)
+    }
+    writeResponseJson(w, output, r.FormValue("callback"))
     w.(http.Flusher).Flush()
 }
 
@@ -36,8 +76,6 @@ func NewsHotestsAction(w http.ResponseWriter, r *http.Request) {
     header.Set("Cache-Control", "no-cache, no-store, must-revalidate")
     header.Set("Pragma", "no-cache")
     header.Set("Expires", "Thu, 01 Dec 1994 16:00:00 GMT")
-
-    w.WriteHeader(200)
 
     // news := gatsby.NewQuery("news")
     // news.Select("id", "title")

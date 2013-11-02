@@ -29,6 +29,7 @@ func RandomString(length int) string {
 
 func writeResponseJson(w http.ResponseWriter, output ApiResponseJson, callback string) {
     if outputBytes, err := json.Marshal(output); err == nil {
+        w.WriteHeader(200)
         if callback != "" {
             w.Write([]byte(callback))
             w.Write([]byte("("))
@@ -38,6 +39,7 @@ func writeResponseJson(w http.ResponseWriter, output ApiResponseJson, callback s
             w.Write(outputBytes)
         }
     } else {
+        fmt.Printf("%#v\n", output)
         fmt.Println("Json faild.")
         w.WriteHeader(500)
         return
