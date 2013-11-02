@@ -9,11 +9,12 @@ import (
     "net/http"
     "github.com/garyburd/redigo/redis"
     _ "github.com/go-sql-driver/mysql"
-    "github.com/NewsCatching/gatsby"
+    "github.com/c9s/gatsby"
     "database/sql"
 )
 
 var RedisPool *redis.Pool
+var DbConnect *sql.DB
 
 func main() {
 
@@ -38,8 +39,10 @@ func main() {
     if err != nil {
         fmt.Println(err)
         return
+    } else {
+        DbConnect = db
     }
-    gatsby.SetupConnection(db, gatsby.DriverMysql)
+    gatsby.SetupConnection(DbConnect, gatsby.DriverMysql)
 
     RedisPool = &redis.Pool{
             MaxIdle: 3,
@@ -63,7 +66,7 @@ func main() {
     runtime.GOMAXPROCS(cpu_num)
 
     http.HandleFunc("/api/v1/ping", PingAction)
-    http.HandleFunc("/api/v1/index", IndexAction)
+    http.HandleFunc("/api/v1/news/hotests", NewsHotestsAction)
 
     http.ListenAndServe((*config).Server, nil)
 

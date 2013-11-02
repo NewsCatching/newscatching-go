@@ -1,7 +1,7 @@
 {
     "server": ":1234",
     "redis": "127.0.0.1:6379",
-    "mysql": "root:@localhost/news-catching",
+    "mysql": "root:@tcp(127.0.0.1:3306)/news-catching",
     "path": {
 
     }
