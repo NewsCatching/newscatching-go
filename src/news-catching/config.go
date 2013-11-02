@@ -5,8 +5,8 @@ import (
     "encoding/json"
 )
 
-func GetConfig(path string) (*JfConfig, error) {
-    var config JfConfig
+func GetConfig(path string) (*Config, error) {
+    var config Config
     jsonStr, err := ioutil.ReadFile(path)
     if err != nil {
         return nil, err
@@ -17,7 +17,8 @@ func GetConfig(path string) (*JfConfig, error) {
     return &config, nil
 }
 
-type JfConfig struct {
+type Config struct {
+    Server string `json:"server"`
     Redis string `json:"redis"`
     Mysql string `json:"mysql"`
     Path map[string]string `json:"path"`

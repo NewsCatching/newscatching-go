@@ -8,14 +8,19 @@ import (
     "flag"
     "net/http"
     "github.com/garyburd/redigo/redis"
+    _ "github.com/go-sql-driver/mysql"
+    "github.com/NewsCatching/gatsby"
+    "database/sql"
 )
 
 var RedisPool *redis.Pool
 
 func main() {
 
-    var configPath string
-    flag.StringVar(&configPath, "Config Page", "", "Config path for news-catching.")
+    var (
+        configPath string
+    )
+    flag.StringVar(&configPath, "config", "", "Config path for news-catching.")
     flag.Parse()
 
     if configPath == "" {
@@ -27,6 +32,14 @@ func main() {
         fmt.Println(err)
         return
     }
+    fmt.Printf("%#v\n", config)
+
+    db, err := sql.Open("mysql", (*config).Mysql)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    gatsby.SetupConnection(db, gatsby.DriverMysql)
 
     RedisPool = &redis.Pool{
             MaxIdle: 3,
@@ -49,8 +62,10 @@ func main() {
     fmt.Println("Cpu num: ", cpu_num)
     runtime.GOMAXPROCS(cpu_num)
 
-    http.HandleFunc("/ping", PingServer)
-    http.ListenAndServe(":1234", nil)
+    http.HandleFunc("/api/v1/ping", PingAction)
+    http.HandleFunc("/api/v1/index", IndexAction)
+
+    http.ListenAndServe((*config).Server, nil)
 
     return
 }

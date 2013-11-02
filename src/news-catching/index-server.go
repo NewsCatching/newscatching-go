@@ -4,10 +4,11 @@ import (
     "net/http"
 )
 
-func PingAction(w http.ResponseWriter, r *http.Request) {
+func IndexAction(w http.ResponseWriter, r *http.Request) {
 
     header := w.Header()
     // header.Set("Content-Type", "text/plain; charset=utf-8")
+    header.Set("Content-Type", "application/javascript")
     header.Set("X-Content-Type-Options", "nosniff")
     header.Set("Cache-Control", "no-cache, no-store, must-revalidate")
     header.Set("Pragma", "no-cache")
@@ -15,7 +16,6 @@ func PingAction(w http.ResponseWriter, r *http.Request) {
 
     w.WriteHeader(200)
 
-    w.Write([]byte("PONG"))
 
     w.(http.Flusher).Flush()
 }
