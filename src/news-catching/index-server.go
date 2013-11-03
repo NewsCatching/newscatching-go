@@ -75,7 +75,62 @@ func NewsReadAction(w http.ResponseWriter, r *http.Request) {
     w.(http.Flusher).Flush()
 }
 
+func NewsReportAction(w http.ResponseWriter, r *http.Request) {
+    header := w.Header()
+    header.Set("Content-Type", "application/javascript; charset=utf-8")
+    header.Set("X-Content-Type-Options", "nosniff")
+    header.Set("Cache-Control", "no-cache, no-store, must-revalidate")
+    header.Set("Pragma", "no-cache")
+    header.Set("Expires", "Thu, 01 Dec 1994 16:00:00 GMT")
 
+    // fmt.Printf("%#v\n", news)
+    output := ApiResponseJson{}
+    var params []interface{}
+    pi := 0
+    offset := r.FormValue("offset")
+    length := r.FormValue("rows")
+    qsearch := r.FormValue("q")
+    if offset == "" {
+        offset = "0"
+    }
+    if length == "" {
+        length = "20"
+    }
+    sql := "RIGHT JOIN `comments` ON `comments`.`news_id` = `news`.`id` WHERE 1 AND delete_time IS NULL ORDER BY `comments`.`created_at` DESC LIMIT ?, ? "
+    if qsearch != "" {
+        sql = "RIGHT JOIN `comments` ON `comments`.`news_id` = `news`.`id` WHERE 1 AND delete_time IS NULL AND title LIKE ? ORDER BY `comments`.`created_at` DESC LIMIT ?, ? "
+        params = make([]interface{},3)
+        params[pi] = "%" + qsearch + "%"
+        pi++
+    } else {
+        params = make([]interface{},2)
+    }
+    params[pi] = offset
+    pi++
+    params[pi] = length
+    pi++
+    rows, err := gatsby.QuerySelectWith(DbConnect, &News{}, sql, params...)
+    if err == nil {
+        news := News{}
+        data, err := gatsby.CreateStructSliceFromRows(&news, rows)
+        if err != nil {
+            fmt.Println(err)
+            output.Error(501, err.Error())
+        } else {
+            newsList := data.([]News)
+            for k, _ := range newsList {
+                newsList[k].Raw = ""
+                newsList[k].Body = ""
+            }
+            output.Data = newsList
+        }
+    } else {
+        output.Error(404, err.Error())
+    }
+    writeResponseJson(w, output, r.FormValue("callback"))
+
+    w.(http.Flusher).Flush()
+}
 
 func NewsHotAction(w http.ResponseWriter, r *http.Request) {
     header := w.Header()
@@ -87,7 +142,9 @@ func NewsHotAction(w http.ResponseWriter, r *http.Request) {
 
     // fmt.Printf("%#v\n", news)
     output := ApiResponseJson{}
-
+    randomSource := rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
+    var params []interface{}
+    pi := 0
     offset := r.FormValue("offset")
     length := r.FormValue("rows")
     qsearch := r.FormValue("q")
@@ -98,10 +155,6 @@ func NewsHotAction(w http.ResponseWriter, r *http.Request) {
         length = "20"
     }
     sql := "WHERE 1 AND delete_time IS NULL ORDER BY SUBSTR(guid, ?, 3) LIMIT ?, ? "
-    randomSource := rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
-
-    var params []interface{}
-    pi := 0
     if qsearch != "" {
         sql = "WHERE 1 AND delete_time IS NULL AND title LIKE ? ORDER BY SUBSTR(guid, ?, 3) LIMIT ?, ? "
         params = make([]interface{},4)
