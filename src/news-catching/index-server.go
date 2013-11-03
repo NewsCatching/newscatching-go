@@ -238,7 +238,7 @@ func NewsHotAction(w http.ResponseWriter, r *http.Request) {
             output.Error(501, err.Error())
         } else {
             newsList := data.([]News)
-            l := len(newsList))
+            l := len(newsList)
             for i := 1 ; i<l ; i++ {
                 j := randomSource.Int63n(int64(i))
                 newsList[i], newsList[j] = newsList[j], newsList[i]
