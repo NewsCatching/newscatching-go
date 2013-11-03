@@ -243,7 +243,13 @@ func NewsHotAction(w http.ResponseWriter, r *http.Request) {
                 j := randomSource.Int63n(int64(i))
                 newsList[i], newsList[j] = newsList[j], newsList[i]
             }
-            nco := newsList[:30]
+            var limit int
+            if len(newsList) > 30 {
+                limit = 30
+            } else {
+                limit = len(newsList)
+            }
+            nco := newsList[:limit]
             for k, _ := range nco {
                 nco[k].Raw = ""
                 nco[k].Body = ""
