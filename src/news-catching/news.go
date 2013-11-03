@@ -21,7 +21,7 @@ type News struct {
     OgDesc          string      `field:"og_description" json:"-"`
     OgTitle         string      `field:"og_title" json:"-"`
     Referral        string      `field:"referral" json:"referral"`
-    RssReferral     string      `field:"rss_referral" json:"-"`
+    RssReferral     string      `field:"rss_referral" json:"RssReferral"`
     CreateTime      *time.Time  `field:"create_time" json:"createTime"`
     UpdateTime      *time.Time  `field:"update_time" json:"-"`
     DeleteTime      *time.Time  `field:"delete_time" json:"-"`
@@ -47,6 +47,9 @@ func GetNewsMeta(newsId int64) (*map[string]interface{}, error) {
             newsIds := make([]string, length)
             newsIdFlags := make(map[int64]bool)
             for _, comment := range commentsList {
+                if comment.Id == 0 {
+                    continue
+                }
                 if comment.DeviceID == 0 {
                     if _, ok := newsIdFlags[comment.NewsID]; ! ok {
                         newsIds[ni] = fmt.Sprintf("%d", comment.NewsID)

@@ -142,7 +142,6 @@ func NewsListAction(w http.ResponseWriter, r *http.Request) {
 
     // fmt.Printf("%#v\n", news)
     output := ApiResponseJson{}
-    randomSource := rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
     var params []interface{}
     pi := 0
     offset := r.FormValue("offset")
@@ -154,17 +153,15 @@ func NewsListAction(w http.ResponseWriter, r *http.Request) {
     if length == "" {
         length = "20"
     }
-    sql := "WHERE 1 AND delete_time IS NULL LIMIT ?, ? "
+    sql := "WHERE 1 AND delete_time IS NULL ORDER BY `create_time` LIMIT ?, ? "
     if qsearch != "" {
-        sql = "WHERE 1 AND delete_time IS NULL AND title LIKE ? LIMIT ?, ? "
-        params = make([]interface{},4)
+        sql = "WHERE 1 AND delete_time IS NULL AND title LIKE ? ORDER BY `create_time` DESC LIMIT ?, ? "
+        params = make([]interface{},3)
         params[pi] = "%" + qsearch + "%"
         pi++
     } else {
-        params = make([]interface{},3)
+        params = make([]interface{},2)
     }
-    params[pi] = randomSource.Int31n(29)
-    pi++
     params[pi] = offset
     pi++
     params[pi] = length
