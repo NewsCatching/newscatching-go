@@ -199,15 +199,17 @@ func NewsHotAction(w http.ResponseWriter, r *http.Request) {
 
     // fmt.Printf("%#v\n", news)
     output := ApiResponseJson{}
-    // randomSource := rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
+    randomSource := rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
     var params []interface{}
     pi := 0
-    offset := r.FormValue("offset")
+    offset := fmt.Sprintf("%d", randomSource.Int31n(2000))
+    qlength := 100
+    // offset := r.FormValue("offset")
     length := r.FormValue("rows")
     qsearch := r.FormValue("q")
-    if offset == "" {
-        offset = "0"
-    }
+    // if offset == "" {
+    //     offset = "0"
+    // }
     if length == "" {
         length = "20"
     }
@@ -217,6 +219,7 @@ func NewsHotAction(w http.ResponseWriter, r *http.Request) {
         params = make([]interface{},3)
         params[pi] = "%" + qsearch + "%"
         pi++
+        offset = "0"
     } else {
         params = make([]interface{},2)
     }
@@ -224,7 +227,7 @@ func NewsHotAction(w http.ResponseWriter, r *http.Request) {
     // pi++
     params[pi] = offset
     pi++
-    params[pi] = length
+    params[pi] = qlength
     pi++
     rows, err := gatsby.QuerySelectWith(DbConnect, &News{}, sql, params...)
     if err == nil {
@@ -235,6 +238,11 @@ func NewsHotAction(w http.ResponseWriter, r *http.Request) {
             output.Error(501, err.Error())
         } else {
             newsList := data.([]News)
+            l := int64(len(newsList))
+            for i := int64(0) ; i<l ; i++ {
+                j := randomSource.Int63n(i)
+                newsList[i], newsList[j] = newsList[j], newsList[i]
+            }
             for k, _ := range newsList {
                 newsList[k].Raw = ""
                 newsList[k].Body = ""
