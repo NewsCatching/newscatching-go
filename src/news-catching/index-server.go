@@ -211,9 +211,9 @@ func NewsHotAction(w http.ResponseWriter, r *http.Request) {
     if length == "" {
         length = "20"
     }
-    sql := "WHERE 1 AND delete_time IS NULL ORDER BY RAND() LIMIT ?, ? "
+    sql := "WHERE 1 AND delete_time IS NULL ORDER BY guid LIMIT ?, ? "
     if qsearch != "" {
-        sql = "WHERE 1 AND delete_time IS NULL AND title LIKE ? ORDER BY RAND() LIMIT ?, ? "
+        sql = "WHERE 1 AND delete_time IS NULL AND title LIKE ? ORDER BY guid LIMIT ?, ? "
         params = make([]interface{},3)
         params[pi] = "%" + qsearch + "%"
         pi++

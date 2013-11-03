@@ -10,6 +10,7 @@ import (
     "github.com/c9s/gatsby"
     "errors"
     "strings"
+    "strconv"
 )
 
 func AuthAction(w http.ResponseWriter, r *http.Request) {
@@ -69,5 +70,27 @@ func CheckAccessToken(token string) (*Devices, error) {
     if len(frags) != 4 {
         return nil, errors.New("Frags error")
     }
-    return nil, nil
+    devices := gatsby.NewRecord(&Devices{}).(*Devices)
+    var deviceId int64
+    var err error
+    if deviceId, err = strconv.ParseInt(frags[0], 10, 64); err != nil {
+        return nil, err
+    }
+    res := devices.Load(deviceId)
+    if res.Error != nil {
+        return nil, res.Error
+    } else {
+        if res.IsEmpty {
+           return nil, errors.New("empty result")
+        }
+    }
+    d := Devices{
+        Id              : devices.Id,
+        DeviceId        : devices.DeviceId,
+        RegId           : devices.RegId,
+        SauthSalt       : devices.SauthSalt,
+        CreatedAt       : devices.CreatedAt,
+        CreateIp        : devices.CreateIp,
+        }
+    return &d, nil
 }
