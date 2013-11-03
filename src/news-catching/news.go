@@ -47,7 +47,7 @@ func GetNewsMeta(newsId int64) (*map[string]interface{}, error) {
             newsIds := make([]string, length)
             newsIdFlags := make(map[int64]bool)
             for _, comment := range commentsList {
-                if comment.NewsID != 0 {
+                if comment.DeviceID != 0 {
                     if _, ok := newsIdFlags[comment.NewsID]; ! ok {
                         newsIds[ni] = fmt.Sprintf("%d", comment.NewsID)
                         ni ++

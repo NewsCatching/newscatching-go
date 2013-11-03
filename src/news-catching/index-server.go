@@ -32,7 +32,6 @@ func NewsReadAction(w http.ResponseWriter, r *http.Request) {
     }
 
     header := w.Header()
-    // header.Set("Content-Type", "text/plain; charset=utf-8")
     header.Set("Content-Type", "application/javascript; charset=utf-8")
     header.Set("X-Content-Type-Options", "nosniff")
     header.Set("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -76,37 +75,58 @@ func NewsReadAction(w http.ResponseWriter, r *http.Request) {
     w.(http.Flusher).Flush()
 }
 
-func NewsHotestsAction(w http.ResponseWriter, r *http.Request) {
-
+func NewsHotAction(w http.ResponseWriter, r *http.Request) {
     header := w.Header()
-    // header.Set("Content-Type", "text/plain; charset=utf-8")
     header.Set("Content-Type", "application/javascript; charset=utf-8")
     header.Set("X-Content-Type-Options", "nosniff")
     header.Set("Cache-Control", "no-cache, no-store, must-revalidate")
     header.Set("Pragma", "no-cache")
     header.Set("Expires", "Thu, 01 Dec 1994 16:00:00 GMT")
 
-    // news := gatsby.NewQuery("news")
-    // news.Select("id", "title")
-    // // news.WhereFromMap( gatsby.ArgMap{
-    // //     "is_headline": 0,
-    // // })
-    // sql := news.String()
-    // args := news.Args()
+    // fmt.Printf("%#v\n", news)
+    output := ApiResponseJson{}
 
-    // fmt.Println(sql)
-    // fmt.Println(args)
+    offset := r.FormValue("offset")
+    length := r.FormValue("rows")
+    if offset == "" {
+        offset = "0"
+    }
+    if length == "" {
+        length = "20"
+    }
 
-    // news := gatsby.NewRecord(&News{}).(*News)
+    randomSource := rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
+    rows, err := gatsby.QuerySelectWith(DbConnect, &News{}, "WHERE 1 AND delete_time IS NULL ORDER BY SUBSTR(guid, ?, 3) LIMIT ?, ? ", randomSource.Int31n(29), offset, length)
+    if err == nil {
+        news := News{}
+        data, err := gatsby.CreateStructSliceFromRows(&news, rows)
+        if err != nil {
+            fmt.Println(err)
+            output.Error(501, err.Error())
+        } else {
+            newsList := data.([]News)
+            for k, _ := range newsList {
+                newsList[k].Raw = ""
+                newsList[k].Body = ""
+            }
+            output.Data = newsList
+        }
+    } else {
+        output.Error(404, err.Error())
+    }
+    writeResponseJson(w, output, r.FormValue("callback"))
 
-    // res := news.Load(10)   // load the record where primary key = 10
+    w.(http.Flusher).Flush()
+}
 
-    // if res.Error != nil {
-    //     fmt.Println(res.Error)
-    // }
-    // if res.IsEmpty {
-    //     fmt.Println("Empty result")
-    // }
+func NewsHotestsAction(w http.ResponseWriter, r *http.Request) {
+
+    header := w.Header()
+    header.Set("Content-Type", "application/javascript; charset=utf-8")
+    header.Set("X-Content-Type-Options", "nosniff")
+    header.Set("Cache-Control", "no-cache, no-store, must-revalidate")
+    header.Set("Pragma", "no-cache")
+    header.Set("Expires", "Thu, 01 Dec 1994 16:00:00 GMT")
 
     // fmt.Printf("%#v\n", news)
     output := ApiResponseJson{}

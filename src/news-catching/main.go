@@ -76,7 +76,11 @@ func main() {
     http.HandleFunc("/api/v1/ping", PingAction)
     http.HandleFunc("/api/v1/doAuth", AuthAction)
     http.HandleFunc("/api/v1/news/hotests", NewsHotestsAction)
+    http.HandleFunc("/api/v1/news/hot", NewsHotAction)
     http.HandleFunc("/api/v1/news/read/", NewsReadAction)
+    http.HandleFunc("/api/v1/news/report/", CreateReportAction)
+    http.HandleFunc("/api/v1/news/talk/", CreateTalkAction)
+
 
     http.ListenAndServe((*config).Server, nil)
 

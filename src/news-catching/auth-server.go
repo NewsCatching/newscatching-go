@@ -8,6 +8,8 @@ import (
     "encoding/hex"
     "io"
     "github.com/c9s/gatsby"
+    "errors"
+    "strings"
 )
 
 func AuthAction(w http.ResponseWriter, r *http.Request) {
@@ -60,4 +62,12 @@ func AuthAction(w http.ResponseWriter, r *http.Request) {
     writeResponseJson(w, output, r.FormValue("callback"))
 
     w.(http.Flusher).Flush()
+}
+
+func CheckAccessToken(token string) (*Devices, error) {
+    frags := strings.Split(token, "/")
+    if len(frags) != 4 {
+        return nil, errors.New("Frags error")
+    }
+    return nil, nil
 }
