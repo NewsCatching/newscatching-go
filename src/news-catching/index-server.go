@@ -243,7 +243,7 @@ func NewsHotAction(w http.ResponseWriter, r *http.Request) {
                 j := randomSource.Int63n(int64(i))
                 newsList[i], newsList[j] = newsList[j], newsList[i]
             }
-            for k, _ := range newsList[:length] {
+            for k, _ := range newsList[:30] {
                 newsList[k].Raw = ""
                 newsList[k].Body = ""
             }
