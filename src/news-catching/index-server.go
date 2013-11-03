@@ -211,7 +211,7 @@ func NewsHotAction(w http.ResponseWriter, r *http.Request) {
     //     offset = "0"
     // }
     if length == "" {
-        length = "20"
+        length = "30"
     }
     sql := "WHERE 1 AND delete_time IS NULL ORDER BY guid LIMIT ?, ? "
     if qsearch != "" {
@@ -243,7 +243,7 @@ func NewsHotAction(w http.ResponseWriter, r *http.Request) {
                 j := randomSource.Int63n(int64(i))
                 newsList[i], newsList[j] = newsList[j], newsList[i]
             }
-            for k, _ := range newsList {
+            for k, _ := range newsList[:length] {
                 newsList[k].Raw = ""
                 newsList[k].Body = ""
             }
