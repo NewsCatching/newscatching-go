@@ -96,9 +96,9 @@ func NewsReportAction(w http.ResponseWriter, r *http.Request) {
     if length == "" {
         length = "20"
     }
-    sql := "RIGHT JOIN `comments` ON `comments`.`news_id` = `news`.`id` WHERE 1 AND delete_time IS NULL ORDER BY `comments`.`created_at` DESC LIMIT ?, ? "
+    sql := "RIGHT JOIN `comments` ON `comments`.`news_id` = `news`.`id` WHERE 1 AND `news`.`referral` = \"批踢踢實業坊\" AND delete_time IS NULL ORDER BY `comments`.`created_at` DESC LIMIT ?, ? "
     if qsearch != "" {
-        sql = "RIGHT JOIN `comments` ON `comments`.`news_id` = `news`.`id` WHERE 1 AND delete_time IS NULL AND title LIKE ? ORDER BY `comments`.`created_at` DESC LIMIT ?, ? "
+        sql = "RIGHT JOIN `comments` ON `comments`.`news_id` = `news`.`id` WHERE 1 AND `news`.`referral` = \"批踢踢實業坊\" AND delete_time IS NULL AND title LIKE ? ORDER BY `comments`.`created_at` DESC LIMIT ?, ? "
         params = make([]interface{},3)
         params[pi] = "%" + qsearch + "%"
         pi++
