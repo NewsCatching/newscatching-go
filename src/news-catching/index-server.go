@@ -132,7 +132,7 @@ func NewsReportAction(w http.ResponseWriter, r *http.Request) {
     w.(http.Flusher).Flush()
 }
 
-func NewsHotAction(w http.ResponseWriter, r *http.Request) {
+func NewsListAction(w http.ResponseWriter, r *http.Request) {
     header := w.Header()
     header.Set("Content-Type", "application/javascript; charset=utf-8")
     header.Set("X-Content-Type-Options", "nosniff")
@@ -154,9 +154,9 @@ func NewsHotAction(w http.ResponseWriter, r *http.Request) {
     if length == "" {
         length = "20"
     }
-    sql := "WHERE 1 AND delete_time IS NULL ORDER BY SUBSTR(guid, ?, 3) LIMIT ?, ? "
+    sql := "WHERE 1 AND delete_time IS NULL LIMIT ?, ? "
     if qsearch != "" {
-        sql = "WHERE 1 AND delete_time IS NULL AND title LIKE ? ORDER BY SUBSTR(guid, ?, 3) LIMIT ?, ? "
+        sql = "WHERE 1 AND delete_time IS NULL AND title LIKE ? LIMIT ?, ? "
         params = make([]interface{},4)
         params[pi] = "%" + qsearch + "%"
         pi++
@@ -165,6 +165,66 @@ func NewsHotAction(w http.ResponseWriter, r *http.Request) {
     }
     params[pi] = randomSource.Int31n(29)
     pi++
+    params[pi] = offset
+    pi++
+    params[pi] = length
+    pi++
+    rows, err := gatsby.QuerySelectWith(DbConnect, &News{}, sql, params...)
+    if err == nil {
+        news := News{}
+        data, err := gatsby.CreateStructSliceFromRows(&news, rows)
+        if err != nil {
+            fmt.Println(err)
+            output.Error(501, err.Error())
+        } else {
+            newsList := data.([]News)
+            for k, _ := range newsList {
+                newsList[k].Raw = ""
+                newsList[k].Body = ""
+            }
+            output.Data = newsList
+        }
+    } else {
+        output.Error(404, err.Error())
+    }
+    writeResponseJson(w, output, r.FormValue("callback"))
+
+    w.(http.Flusher).Flush()
+}
+
+func NewsHotAction(w http.ResponseWriter, r *http.Request) {
+    header := w.Header()
+    header.Set("Content-Type", "application/javascript; charset=utf-8")
+    header.Set("X-Content-Type-Options", "nosniff")
+    header.Set("Cache-Control", "no-cache, no-store, must-revalidate")
+    header.Set("Pragma", "no-cache")
+    header.Set("Expires", "Thu, 01 Dec 1994 16:00:00 GMT")
+
+    // fmt.Printf("%#v\n", news)
+    output := ApiResponseJson{}
+    // randomSource := rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
+    var params []interface{}
+    pi := 0
+    offset := r.FormValue("offset")
+    length := r.FormValue("rows")
+    qsearch := r.FormValue("q")
+    if offset == "" {
+        offset = "0"
+    }
+    if length == "" {
+        length = "20"
+    }
+    sql := "WHERE 1 AND delete_time IS NULL ORDER BY RAND() LIMIT ?, ? "
+    if qsearch != "" {
+        sql = "WHERE 1 AND delete_time IS NULL AND title LIKE ? ORDER BY RAND() LIMIT ?, ? "
+        params = make([]interface{},3)
+        params[pi] = "%" + qsearch + "%"
+        pi++
+    } else {
+        params = make([]interface{},2)
+    }
+    // params[pi] = randomSource.Int31n(29)
+    // pi++
     params[pi] = offset
     pi++
     params[pi] = length

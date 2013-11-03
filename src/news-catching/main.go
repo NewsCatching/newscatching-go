@@ -78,6 +78,7 @@ func main() {
     http.HandleFunc("/api/v1/news/hotests", NewsHotestsAction)
     http.HandleFunc("/api/v1/news/hot", NewsHotAction)
     http.HandleFunc("/api/v1/news/report", NewsReportAction)
+    http.HandleFunc("/api/v1/news/list", NewsListAction)
     http.HandleFunc("/api/v1/news/read/", NewsReadAction)
     http.HandleFunc("/api/v1/news/report/", CreateReportAction)
     http.HandleFunc("/api/v1/news/talk/", CreateTalkAction)
